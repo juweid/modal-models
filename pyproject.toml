@@ -1,0 +1,15 @@
+[project]
+name = "modal-models"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "diffusers>=0.41.0",
+    "dotenv>=0.9.9",
+    "fastapi>=0.143.1",
+    "modal>=1.6.1",
+    "openai>=3.31.0",
+    "pillow>=12.3.0",
+    "torch>=2.14.1",
+]
