@@ -166,7 +166,8 @@ class ModelAPI:
         @api.post("/v1/images/edits", response_model=OpenAIImageResponse)
         def edit_image(
             prompt: str = Form(...),
-            image: List[UploadFile] = File(...),
+            image: Optional[List[UploadFile]] = File(None),
+            image_brackets: Optional[List[UploadFile]] = File(None, alias="image[]"),
             mask: Optional[UploadFile] = File(None),
             model: Optional[str] = Form(None),
             n: Optional[int] = Form(1),
@@ -176,6 +177,10 @@ class ModelAPI:
         ):
             if self.pipe is None:
                 raise HTTPException(status_code=503, detail="Model is not loaded yet. Please try again later.")
+            
+            uploaded_images = image or image_brackets
+            if not uploaded_images:
+                raise HTTPException(status_code=422, detail="No image provided in 'image' or 'image[]'")
 
             try:
                 # Extract image dimensions & snap to multiples of 32 (required by 64-ch VAE)
@@ -190,7 +195,7 @@ class ModelAPI:
 
                 print(f"[Inference] Generating {num_images}x ({width}x{height}) image(s) for: '{prompt}'")
 
-                input_images = [Image.open(img.file).convert("RGB") for img in image]
+                input_images = [Image.open(img.file).convert("RGB") for img in uploaded_images]
 
                 # Serialize GPU access across FastAPI worker threads & disable grad tracking
                 with torch.inference_mode():
